@@ -66,6 +66,15 @@ class TemporalSlice:
         return - self.cost / self.visits + \
             exp_const * math.sqrt(math.log(self.parent.visits) / self.visits)
 
+    def puct(self, action_prob, exp_const):
+        """
+        Compute the UCT criterion.
+        :param action_prob: the probability of the action corresponding to this node.
+        :param exp_const: the exploration constant.
+        :return: nothing.
+        """
+        return - self.cost / self.visits + exp_const * action_prob / self.visits
+
     def use_posteriors_as_empirical_priors(self):
         """
         Set the states priors equal to the states posteriors.

@@ -17,12 +17,22 @@ class dSpritesPreProcessingWrapper:
         self.env = env
         self.n_actions = env.n_actions
         self.obs_names = obs_names if obs_names is not None else \
-            ["O_color", "O_shape", "O_scale", "O_orientation", "O_pos_x", "O_pos_y"]
-        self.state_names = ["S_color", "S_shape", "S_scale", "S_orientation", "S_pos_x", "S_pos_y"]
-        self.s_sizes = self.env.s_sizes.copy()
+            ["O_shape", "O_scale", "O_orientation", "O_pos_x", "O_pos_y"]
+        self.state_names = ["S_shape", "S_scale", "S_orientation", "S_pos_x", "S_pos_y"]
+        self.s_sizes = self.env.s_sizes.copy()[1:]
+        self.s_sizes[3] /= self.env.granularity
         self.s_sizes[4] /= self.env.granularity
-        self.s_sizes[5] /= self.env.granularity
-        self.s_sizes[5] += 1
+        self.s_sizes[4] += 1
+
+    def n_states(self):
+        """
+        Getter.
+        :return: the number of states for each latent factor.
+        """
+        s_sizes = {}
+        for i in range(len(self.s_sizes)):
+            s_sizes[self.state_names[i]] = self.s_sizes[i]
+        return s_sizes
 
     def get_reward(self):
         """
@@ -62,8 +72,8 @@ class dSpritesPreProcessingWrapper:
         obs[4] /= self.env.granularity
         obs[5] /= self.env.granularity
         obs_dict = {}
-        for i in range(1, obs.size(0)):
-            obs_dict[self.obs_names[i]] = one_hot(obs[i].to(torch.int64), self.s_sizes[i])
+        for i in range(0, obs.size(0) - 1):
+            obs_dict[self.obs_names[i]] = one_hot(obs[i + 1].to(torch.int64), self.s_sizes[i])
         return obs_dict
 
     def current_frame(self):
@@ -104,21 +114,21 @@ class dSpritesPreProcessingWrapper:
         transitions = {}
 
         # Generate transitions for which action has no effect.
-        for i in range(1, 4):
+        for i in range(0, 3):
             transition = torch.full([self.s_sizes[i], self.s_sizes[i]], noise / (self.s_sizes[i] - 1))
             for j in range(self.s_sizes[i]):
                 transition[j][j] = 1 - noise
             transitions[self.state_names[i]] = transition
 
         # Generate transitions for which action has an effect.
-        for i in range(4, self.s_sizes.size):
+        for i in range(3, self.s_sizes.size):
             transition = torch.full([self.s_sizes[i], self.s_sizes[i], self.n_actions], noise / (self.s_sizes[i] - 1))
             for j in range(self.s_sizes[i]):
-                cur_state = torch.zeros([self.s_sizes.size])
-                cur_state[i] = j * self.env.granularity
+                cur_state = torch.zeros([self.s_sizes.size + 1])
+                cur_state[i + 1] = j * self.env.granularity
                 for k in range(self.n_actions):
                     dest_state = self.env.simulate(k, cur_state)
-                    dest_id = int(dest_state[i].item() / self.env.granularity)
+                    dest_id = int(dest_state[i + 1].item() / self.env.granularity)
                     transition[dest_id][j][k] = 1 - noise
             transitions[self.state_names[i]] = transition
         return transitions
@@ -131,11 +141,11 @@ class dSpritesPreProcessingWrapper:
         preferences = {}
 
         # Create preferences for observations over which no outcome is preferred.
-        for i in [0, 2, 3]:
+        for i in [1, 2]:
             preferences[self.obs_names[i]] = torch.full([self.s_sizes[i]], 1 / self.s_sizes[i])
 
         # Create preferences for the shape and x position of the object.
-        preference = torch.zeros([self.s_sizes[4], self.s_sizes[5], self.s_sizes[1]])
+        preference = torch.zeros([self.s_sizes[3], self.s_sizes[4], self.s_sizes[0]])
         for shape in range(0, 3):
             start_pos = 1 if shape == 0 else 0  # If shape == square then 1 else 0
             end_pos = self.env.n_pos if shape == 0 else self.env.n_pos - 1  # If shape == square then n_pos else n_pos-1
@@ -148,13 +158,13 @@ class dSpritesPreProcessingWrapper:
                 preference[int(self.env.n_pos - 1)][y_pos][shape] = 5
         shape = preference.shape
         preference = torch.softmax(preference.view(-1), dim=0).view(shape)
-        preferences[self.obs_names[1] + "_pos_x_y"] = preference
+        preferences[self.obs_names[0] + "_pos_x_y"] = preference
 
         # Create preferences over the y position.
         noise = 0.6
-        preference = torch.full([self.s_sizes[5]], noise / (self.s_sizes[5] - 1))
-        preference[self.s_sizes[5] - 1] = 1 - noise
-        preferences[self.obs_names[5]] = preference
+        preference = torch.full([self.s_sizes[4]], noise / (self.s_sizes[4] - 1))
+        preference[self.s_sizes[4] - 1] = 1 - noise
+        preferences[self.obs_names[4]] = preference
 
         return preferences
 
@@ -167,7 +177,7 @@ class dSpritesPreProcessingWrapper:
         """
         state = self.get_state()
         prior_states = {}
-        for i in range(1, self.s_sizes.size):
+        for i in range(0, self.s_sizes.size):
             if uniform:
                 prior = torch.full([self.s_sizes[i]], 1 / self.s_sizes[i])
                 prior_states[self.state_names[i]] = prior
@@ -183,7 +193,6 @@ class dSpritesPreProcessingWrapper:
         :return: the state of the environment after accounting for the granularity.
         """
         state = self.env.state
+        state[3] /= self.env.granularity
         state[4] /= self.env.granularity
-        state[5] /= self.env.granularity
         return state
-
