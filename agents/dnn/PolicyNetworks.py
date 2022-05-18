@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch import cat
+from singletons.Device import Device
 
 
 class Policy4x100(nn.Module):
@@ -48,7 +49,7 @@ class Policy4x100(nn.Module):
         states = [state for _, state in states.items()]
         if states[0].dim() == 1:
             states = [torch.unsqueeze(state, dim=0) for state in states]
-        return cat(states, dim=1).to(torch.float)
+        return cat(states, dim=1).to(torch.float).to(Device.get())
 
     def forward(self, states):
         """

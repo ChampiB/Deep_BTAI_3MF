@@ -63,7 +63,7 @@ def main(config):
     agent = archive.load_model(ts) if archive.exists() else instantiate(config["agent"], ts=ts)
 
     # Train the agent.
-    run_trials(agent, env, config, n_trials=1000)
+    run_trials(agent, env, config, n_trials=config["n_trials"])
 
     # Test the agent.
     run_trials(agent, env, config, n_trials=100, use_mcts=False)

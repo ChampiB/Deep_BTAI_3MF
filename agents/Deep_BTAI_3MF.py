@@ -3,6 +3,7 @@ from agents.planning.PMCTS import PMCTS
 from agents.planning.MCTS import MCTS
 import torch
 from torch.optim import Adam
+from singletons.Device import Device
 from agents.save.Checkpoint import Checkpoint
 from torch.distributions.categorical import Categorical
 from agents.memory.ReplayBuffer import ReplayBuffer, Experience
@@ -31,6 +32,7 @@ class Deep_BTAI_3MF:
         """
         # Model related attributes.
         self.policy = policy
+        Device.send([self.policy])
         self.ts = ts
 
         # Planning related attributes.
