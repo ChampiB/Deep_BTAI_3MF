@@ -1,0 +1,13 @@
+name: d_sprites
+
+_target_: env.dSpritesEnv.dSpritesEnv
+
+max_episode_length: 50
+difficulty: "hard" # easy or hard
+granularity: 8
+repeats: 5
+n_actions: 4
+
+images:
+  shape: ${tuple:1,64,64}
+  archive: "${oc.env:DATA_DIRECTORY}/dsprites-ds/dsprites.npz"

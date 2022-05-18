@@ -1,7 +1,7 @@
-from agent.inference.TemporalSliceBuilder import TemporalSliceBuilder
+from agents.inference.TemporalSliceBuilder import TemporalSliceBuilder
 from env.dSpritesEnv import dSpritesEnv
 from env.wrapper.dSpritesPreProcessingWrapper import dSpritesPreProcessingWrapper
-from agent.BTAI_3MF import BTAI_3MF
+from agents.BTAI_3MF import BTAI_3MF
 from analysis.GUI import GUI
 
 

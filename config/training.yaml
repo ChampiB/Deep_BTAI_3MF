@@ -1,0 +1,17 @@
+defaults:
+  - env: dSprites
+  - agent: Deep_BTAI_3MF
+  - _self_
+
+checkpoint:
+  file: "${oc.env:DATA_DIRECTORY}/models/${env.name}/${agent.name}/${seed}/model.pt"
+  frequency: 100
+
+tensorboard:
+  enable: true
+  dir: "${oc.env:DATA_DIRECTORY}/runs/${env.name}_${agent.name}_${seed}"
+
+display_gui: true
+n_trials: 50000
+batch_size: 50
+seed: 1

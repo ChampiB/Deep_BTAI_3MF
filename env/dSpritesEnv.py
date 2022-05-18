@@ -10,24 +10,32 @@ class dSpritesEnv:
     A class implementing the dSprites environment.
     """
 
-    def __init__(self, granularity=4, repeat=8, dataset_file="./data/dsprites.npz"):
+    def __init__(
+            self, images, granularity=4, repeat=8,
+            max_episode_length=50, n_actions=4, difficulty="hard", **_
+    ):
         """
         Construct the dSprites environment.
         :param granularity: the granularity of the x and y positions.
+        :param n_actions: the number of actions in the environment.
+        :param difficulty: the difficulty of the environment, i.e. easy or hard.
+        :param max_episode_length: the maximum length of an episode.
         :param repeat: the number of times an action must be repeated.
-        :param dataset_file: path to the file containing the dSprites dataset.
+        :param images: a dictionnary describing the sizes of images and the path to
+        the file containing the dSprites dataset.
         """
-        self.n_actions = 4
+        self.difficulty = difficulty
+        self.n_actions = n_actions
         self.granularity = granularity
         self.repeat = repeat
+        self.max_episode_length = max_episode_length
 
         self.n_pos = 32 / self.granularity
         self.last_r = 0.0
         self.frame_id = 0
-        self.max_episode_length = 50
         self.need_reset = False
 
-        self.images, self.s_sizes, self.s_dim, self.s_bases = DataSet.get(dataset_file)
+        self.images, self.s_sizes, self.s_dim, self.s_bases = DataSet.get(images["archive"])
         self.s_dim = self.s_sizes.size
         self.state = torch.zeros(self.s_dim)
         self.s_bases_obs = torch.tensor([0, self.n_pos * (self.n_pos + 1), 0, 0, self.n_pos + 1, 1])
@@ -131,9 +139,10 @@ class dSpritesEnv:
         # Simulate the action requested by the user.
         self.state = self.simulate(action, self.state)
 
-        # If the object crossed the bottom line, then:
-        # compute the reward, generate a new image.
-        if self.state[5] >= 32:
+        # Compute the reward obtained by the agent.
+        if self.difficulty == "easy":
+            self.last_r = self.compute_easy_reward()
+        if self.difficulty == "hard" and self.state[5] >= 32:
             if self.state[1] < 0.5:
                 self.last_r = self.compute_square_reward()
             else:
@@ -146,6 +155,14 @@ class dSpritesEnv:
             self.need_reset = True
             self.last_r = -1
         return self.state.clone()
+
+    def compute_easy_reward(self):
+        """
+        Compute the reward obtained by the agent if the environment difficulty is easy.
+        :return: the reward.
+        """
+        tx, ty = (0, 31) if self.state[1] < 0.5 else (31, 31)
+        return -1.0 + (62 - abs(tx - self.state[4]) - abs(ty - self.state[5])) / 31.0
 
     def compute_square_reward(self):
         """

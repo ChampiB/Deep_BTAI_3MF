@@ -1,0 +1,22 @@
+name: deep_btai_3mf
+
+defaults:
+  - policy: policy4x100
+  - _self_
+
+_target_: agents.Deep_BTAI_3MF.Deep_BTAI_3MF
+
+# Learning parameter
+lr: 0.0001
+
+# Memory parameters
+queue_capacity: 10000
+batch_size: 32
+
+# Planning parameters
+mcts_type: "pmcts"
+max_planning_steps: 150
+exp_const: 2.4
+
+# Miscellaneous parameters
+ts: ???

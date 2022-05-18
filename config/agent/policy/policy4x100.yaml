@@ -1,0 +1,3 @@
+_target_: agents.dnn.PolicyNetworks.Policy4x100
+
+n_actions: ${env.n_actions}

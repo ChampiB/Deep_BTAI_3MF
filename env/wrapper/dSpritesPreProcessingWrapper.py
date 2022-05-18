@@ -31,7 +31,7 @@ class dSpritesPreProcessingWrapper:
         """
         s_sizes = {}
         for i in range(len(self.s_sizes)):
-            s_sizes[self.state_names[i]] = self.s_sizes[i]
+            s_sizes[self.state_names[i]] = int(self.s_sizes[i])
         return s_sizes
 
     def get_reward(self):
@@ -83,12 +83,14 @@ class dSpritesPreProcessingWrapper:
         """
         return self.env.current_frame()
 
-    def render(self):
+    def render(self, display_gui=True):
         """
         Display the current state of the environment as an image.
+        :param display_gui: True if the GUI should be displayed.
         :return: nothing.
         """
-        self.env.render()
+        if display_gui:
+            self.env.render()
 
     def a(self, noise=0.001):
         """

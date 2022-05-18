@@ -1,0 +1,35 @@
+env:
+  name: d_sprites
+  _target_: env.dSpritesEnv.dSpritesEnv
+  max_episode_length: 50
+  difficulty: hard
+  granularity: 8
+  repeats: 5
+  n_actions: 4
+  images:
+    shape: ${tuple:1,64,64}
+    archive: ${oc.env:DATA_DIRECTORY}/dsprites-ds/dsprites.npz
+agent:
+  policy:
+    _target_: agents.dnn.PolicyNetworks.Policy4x100
+    n_actions: ${env.n_actions}
+  planning:
+    _target_: agents.planning.MCTS.MCTS
+    max_planning_steps: 150
+    exp_const: 2.4
+  name: deep_btai_3mf
+  _target_: agents.Deep_BTAI_3MF.Deep_BTAI_3MF
+  lr: 0.0001
+  queue_capacity: 10000
+  batch_size: 32
+  ts: ???
+checkpoint:
+  file: ${oc.env:DATA_DIRECTORY}/${env.name}/${agent.name}/${seed}/model.pt
+  frequency: 100
+tensorboard:
+  enable: true
+  dir: ${oc.env:DATA_DIRECTORY}/runs/${env.name}_${agent.name}_${seed}
+display_gui: true
+n_trials: 50000
+batch_size: 50
+seed: 1
