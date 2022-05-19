@@ -48,8 +48,12 @@ class MCTS:
         """
         best_child = min(nodes, key=lambda x: x.efe())
         cost = best_child.cost
-        current = best_child.parent
-        while current is not None:
+        if best_child.parent is None:
+            return
+        current = best_child.parent()
+        while True:
             current.cost += cost
             current.visits += 1
-            current = current.parent
+            if current.parent is None:
+                return
+            current = current.parent()

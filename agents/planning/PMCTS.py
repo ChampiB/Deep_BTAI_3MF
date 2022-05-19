@@ -54,8 +54,8 @@ class PMCTS:
         """
         best_child = min(nodes, key=lambda x: x.efe())
         cost = best_child.cost
-        current = best_child.parent
+        current = best_child.parent if best_child.parent is None else best_child.parent()
         while current is not None:
             current.cost += cost
             current.visits += 1
-            current = current.parent
+            current = current.parent if current.parent is None else current.parent()

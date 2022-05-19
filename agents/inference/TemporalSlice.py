@@ -1,3 +1,4 @@
+import weakref
 import math
 import queue
 import torch
@@ -55,7 +56,7 @@ class TemporalSlice:
         self.cost = 0
         self.visits = 1
         self.parent = None
-        self.children = []
+        self.children.clear()
 
     def uct(self, exp_const):
         """
@@ -63,8 +64,10 @@ class TemporalSlice:
         :param exp_const: the exploration constant.
         :return: nothing.
         """
+        if self.parent is None:
+            raise Exception("[ERROR] Can not compute UCT if parent is None.")
         return - self.cost / self.visits + \
-            exp_const * math.sqrt(math.log(self.parent.visits) / self.visits)
+            exp_const * math.sqrt(math.log(self.parent().visits) / self.visits)
 
     def puct(self, action_prob, exp_const):
         """
@@ -168,7 +171,7 @@ class TemporalSlice:
             self.states_parents, self.obs_parents
         )
         next_ts.action = action
-        next_ts.parent = self
+        next_ts.parent = weakref.ref(self)
         self.children.append(next_ts)
 
         # Create a one hot encoding of the action.

@@ -151,12 +151,16 @@ class Deep_BTAI_3MF:
         """
         try:
             # If the child corresponding to the action selected has been expanded, retrieve it.
-            self.ts = next(filter(lambda x: x.action == action, self.ts.children))
+            new_ts = next(filter(lambda x: x.action == action, self.ts.children))
         except StopIteration:
             # Else create the child corresponding to the action selected.
-            self.ts = self.ts.p_step(action)
+            new_ts = self.ts.p_step(action)
+
+        # Clean up root memory
+        self.ts.reset()
 
         # Make the selected child, ready to be the new root in the next cycle.
+        self.ts = new_ts
         self.ts.reset()
         self.ts.use_posteriors_as_empirical_priors()
         self.ts.i_step(obs)

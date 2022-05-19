@@ -14,4 +14,4 @@ tensorboard:
 display_gui: true
 n_trials: 50000
 batch_size: 50
-seed: 1
+seed: 2
